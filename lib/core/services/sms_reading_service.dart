@@ -1,4 +1,4 @@
-import 'package:telephony/telephony.dart';
+import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:transaction_tracker/core/constants/app_constants.dart';
 import 'package:transaction_tracker/core/errors/exceptions.dart';
 
@@ -17,24 +17,18 @@ class RawSmsMessage {
 
 /// Service for reading SMS messages from device
 class SmsReadingService {
-  final Telephony _telephony = Telephony.instance;
+  final SmsQuery _query = SmsQuery();
 
   /// Get all SMS messages from device
   Future<List<RawSmsMessage>> getAllSms() async {
     try {
-      final messages = await _telephony.getInboxSms(columns: [
-        SmsColumn.ID,
-        SmsColumn.ADDRESS,
-        SmsColumn.BODY,
-        SmsColumn.DATE,
-        SmsColumn.TYPE,
-      ]);
+      final messages = await _query.getAllSms;
 
       return messages.map((sms) {
         return RawSmsMessage(
           messageBody: sms.body ?? '',
-          sender: sms.address ?? 'Unknown',
-          timestamp: sms.date != null ? DateTime.fromMillisecondsSinceEpoch(sms.date!) : null,
+          sender: sms.sender ?? 'Unknown',
+          timestamp: sms.date,
         );
       }).toList();
     } catch (e) {
@@ -63,7 +57,10 @@ class SmsReadingService {
   Future<List<RawSmsMessage>> getSmsFromSender(String sender) async {
     try {
       final allSms = await getAllSms();
-      return allSms.where((sms) => sms.sender.toLowerCase().contains(sender.toLowerCase())).toList();
+      return allSms
+          .where((sms) =>
+              sms.sender.toLowerCase().contains(sender.toLowerCase()))
+          .toList();
     } catch (e) {
       throw SmsReadingException('Failed to get SMS from sender: $e');
     }
@@ -74,7 +71,6 @@ class SmsReadingService {
     return messages.where((sms) {
       final lowerBody = sms.messageBody.toLowerCase();
 
-      // Check for transaction keywords
       final hasTransactionKeywords =
           AppConstants.bankKeywords.any((keyword) => lowerBody.contains(keyword)) ||
               AppConstants.mpesaKeywords.any((keyword) => lowerBody.contains(keyword)) ||
@@ -82,7 +78,6 @@ class SmsReadingService {
               AppConstants.incomeKeywords.any((keyword) => lowerBody.contains(keyword)) ||
               AppConstants.expenseKeywords.any((keyword) => lowerBody.contains(keyword));
 
-      // Check for amount pattern
       final amountRegex = RegExp(AppConstants.amountPattern);
       final hasAmount = amountRegex.hasMatch(lowerBody);
 
