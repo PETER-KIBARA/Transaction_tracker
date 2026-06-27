@@ -4,9 +4,11 @@ import 'package:transaction_tracker/core/theme/app_theme.dart';
 import 'package:transaction_tracker/injection/injection_container.dart';
 import 'package:transaction_tracker/routes/app_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Add this line
+  
   // Initialize dependency injection
-  configureDependencies();
+  await configureDependencies();
   
   runApp(const MyApp());
 }
