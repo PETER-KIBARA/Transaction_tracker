@@ -34,7 +34,9 @@ jobs:
       - name: Patch telephony namespace
         run: |
           FILE=$(find ~/.pub-cache -path "*/telephony-*/android/build.gradle")
-          sed -i '/^android {/a\    namespace "com.vincentkammerer.telephony"' $FILE
+          sed -i '/^android {/a\    namespace "com.shounakmulay.telephony"' $FILE
+          MANIFEST=$(find ~/.pub-cache -path "*/telephony-*/android/src/main/AndroidManifest.xml")
+          sed -i 's/package="com.shounakmulay.telephony"//g' $MANIFEST
 
       - name: Build APK
         run: flutter build apk --debug
