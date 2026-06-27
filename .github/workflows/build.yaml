@@ -31,6 +31,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch telephony namespace
+        run: |
+          FILE=$(find ~/.pub-cache -path "*/telephony-*/android/build.gradle")
+          sed -i '/^android {/a\    namespace "com.vincentkammerer.telephony"' $FILE
+
       - name: Build APK
         run: flutter build apk --debug
 
