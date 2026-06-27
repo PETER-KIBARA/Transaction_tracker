@@ -5,10 +5,10 @@ import 'package:transaction_tracker/injection/injection_container.dart';
 import 'package:transaction_tracker/routes/app_router.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Add this line
+  WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize dependency injection
-  await configureDependencies();
+  configureDependencies();
   
   runApp(const MyApp());
 }
