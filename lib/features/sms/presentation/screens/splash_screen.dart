@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:transaction_tracker/injection/injection_container.dart';
+import 'package:transaction_tracker/core/services/permission_service.dart';
 
 /// Splash screen shown during app initialization
 class SplashScreen extends StatefulWidget {
@@ -20,10 +22,15 @@ class _SplashScreenState extends State<SplashScreen> {
     // Simulate initialization delay
     await Future.delayed(const Duration(seconds: 2));
     
+    final permissionService = getIt<PermissionService>();
+    final hasPermission = await permissionService.isSmsPermissionGranted();
+    
     if (mounted) {
-      // Navigate to permission screen or home based on permission status
-      // This will be implemented with proper routing
-      context.go('/permissions');
+      if (hasPermission) {
+        context.go('/home');
+      } else {
+        context.go('/permissions');
+      }
     }
   }
 
