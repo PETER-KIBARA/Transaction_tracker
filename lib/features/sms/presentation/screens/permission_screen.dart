@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:transaction_tracker/core/services/permission_service.dart';
 
 /// Screen that explains and requests SMS permission
@@ -34,7 +35,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
 
         if (granted) {
           if (mounted) {
-            Navigator.of(context).pushReplacementNamed('/home');
+            context.go('/home');
           }
         }
       }

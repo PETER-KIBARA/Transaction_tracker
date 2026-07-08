@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// Splash screen shown during app initialization
 class SplashScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (mounted) {
       // Navigate to permission screen or home based on permission status
       // This will be implemented with proper routing
-      Navigator.of(context).pushReplacementNamed('/permissions');
+      context.go('/permissions');
     }
   }
 
