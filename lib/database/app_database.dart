@@ -20,13 +20,13 @@ class AppDatabase extends _$AppDatabase {
 
   /// Insert a new SMS transaction
   Future<void> insertSmsTransaction(SmsTransactionsCompanion transaction) {
-    return into(smsTransactions).insert(transaction);
+    return into(smsTransactions).insert(transaction, mode: InsertMode.insertOrIgnore);
   }
 
   /// Insert multiple SMS transactions
   Future<void> insertMultipleSmsTransactions(List<SmsTransactionsCompanion> transactions) {
     return batch((batch) {
-      batch.insertAll(smsTransactions, transactions);
+      batch.insertAll(smsTransactions, transactions, mode: InsertMode.insertOrIgnore);
     });
   }
 
