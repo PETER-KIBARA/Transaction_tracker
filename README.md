@@ -1,4 +1,4 @@
-# SMS Transaction Analyzer
+## SMS Transaction Analyzer
 
 A personal financial tracking application built with Flutter that automatically reads SMS messages from your Android device, extracts transaction-related information, and provides analytics dashboards to help you monitor your spending.
 
@@ -6,37 +6,12 @@ The app is completely offline and processes all data locally on your device, ens
 
 ## Features
 
-- 📱 **Automated SMS Parsing**: Reads SMS messages directly from your device (requires explicit user permission).
-- 💳 **Transaction Detection**: Automatically detects and categorizes various financial transactions including bank transfers, M-Pesa, Airtel Money, and purchases.
-- 📊 **Analytics Dashboard**: Visualizes your spending patterns, income, and expenses over time.
-- 🔍 **Advanced Search & Filtering**: Easily find specific transactions by amount, sender, date, or category.
-- 💾 **100% Offline**: All data is stored locally on your device. No cloud synchronization or external servers are involved.
-- 🌙 **Dark Mode Support**: Sleek, modern Material 3 interface that adapts to your device theme.
+-  **Automated SMS Parsing**: Reads SMS messages directly from your device (requires explicit user permission).
+-  **Transaction Detection**: Automatically detects and categorizes various financial transactions including bank transfers, M-Pesa, Airtel Money, and purchases.
+- **Analytics Dashboard**: Visualizes your spending patterns, income, and expenses over time.
+-  **Advanced Search & Filtering**: Easily find specific transactions by amount, sender, date, or category.
+- **100% Offline**: All data is stored locally on your device. No cloud synchronization or external servers are involved.
 
-## Setup Instructions
-
-### Prerequisites
-- Flutter SDK (latest stable)
-- Android SDK (API level 23+)
-- Dart SDK
-
-### Installation
-
-1. **Clone or setup the project**
-```bash
-cd transaction_tracker
-flutter pub get
-```
-
-2. **Generate background code**
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-3. **Run the app**
-```bash
-flutter run
-```
 
 *Note: The app requires the `READ_SMS` permission on Android to function, which will be requested when you first open it.*
 
