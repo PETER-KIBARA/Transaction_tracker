@@ -27,8 +27,8 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.refresh(monthlyStatisticsProvider(startDate: startOfMonth, endDate: endOfMonth));
-          ref.refresh(paginatedTransactionsProvider(page: 1));
+          ref.invalidate(monthlyStatisticsProvider(startDate: startOfMonth, endDate: endOfMonth));
+          ref.invalidate(paginatedTransactionsProvider(page: 1));
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),

@@ -1,14 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:transaction_tracker/core/theme/theme_provider.dart';
+import 'package:transaction_tracker/core/services/sms_reading_service.dart';
+import 'package:transaction_tracker/core/services/sms_parsing_service.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
+import 'package:transaction_tracker/features/sms/presentation/providers/sms_providers.dart';
+import 'package:transaction_tracker/injection/injection_container.dart';
 
 /// Settings screen for application configuration
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _darkModeEnabled = false;
 
   @override
@@ -45,11 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Export Data'),
               subtitle: const Text('Export all data as CSV'),
               trailing: const Icon(Icons.arrow_forward),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Data exported successfully')),
-                );
-              },
+              onTap: _exportData,
             ),
           ),
           const SizedBox(height: 24),
@@ -65,9 +70,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode_outlined),
               title: const Text('Dark Mode'),
-              value: _darkModeEnabled,
+              value: ref.watch(themeModeProvider) == ThemeMode.dark,
               onChanged: (value) {
-                setState(() => _darkModeEnabled = value);
+                ref.read(themeModeProvider.notifier).state = value ? ThemeMode.dark : ThemeMode.light;
               },
             ),
           ),
@@ -133,17 +138,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Scanning SMS messages...')),
-              );
-            },
+            onPressed: _importSms,
             child: const Text('Scan'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _importSms() async {
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Scanning SMS messages...')),
+    );
+    try {
+      final smsReadingService = getIt<SmsReadingService>();
+      final smsParsingService = getIt<SmsParsingService>();
+      
+      final allSms = await smsReadingService.getAllSms();
+      final transactionSms = smsReadingService.filterTransactionSms(allSms);
+
+      final transactions = <SmsTransactionEntity>[];
+      for (final sms in transactionSms) {
+        final transaction = smsParsingService.parseSms(sms.messageBody, sms.sender);
+        if (transaction != null) {
+          transactions.add(transaction);
+        }
+      }
+
+      if (transactions.isNotEmpty) {
+        await ref.read(addMultipleTransactionsUseCaseProvider)(transactions);
+        
+        // Refresh UI providers
+        ref.invalidate(paginatedTransactionsProvider);
+        ref.invalidate(monthlyStatisticsProvider);
+        ref.invalidate(allTransactionsProvider);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Successfully imported ${transactions.length} transactions.')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No new transactions found.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error scanning SMS: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportData() async {
+    try {
+      final transactions = await ref.read(getAllTransactionsUseCaseProvider).call();
+      if (transactions.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No transactions to export')),
+          );
+        }
+        return;
+      }
+      
+      String csv = 'ID,Date,Sender,Type,Category,Amount,Reference,Balance\n';
+      for (final t in transactions) {
+        csv += '${t.id},${t.transactionDate},${t.sender},${t.transactionType},${t.category},${t.amount},${t.referenceNumber ?? ''},${t.balance ?? ''}\n';
+      }
+      
+      final directory = await getApplicationDocumentsDirectory();
+      final path = '${directory.path}/transactions_export.csv';
+      final file = File(path);
+      await file.writeAsString(csv);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data exported to $path')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error exporting data: $e')),
+        );
+      }
+    }
   }
 
   void _showClearDataConfirmDialog() {
@@ -160,11 +245,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('All data has been cleared')),
-              );
+              try {
+                await ref.read(smsTransactionRepositoryProvider).deleteAllTransactions();
+                
+                // Refresh UI providers
+                ref.invalidate(paginatedTransactionsProvider);
+                ref.invalidate(monthlyStatisticsProvider);
+                ref.invalidate(allTransactionsProvider);
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('All data has been cleared')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error clearing data: $e')),
+                  );
+                }
+              }
             },
             child: const Text('Clear', style: TextStyle(color: Colors.red)),
           ),

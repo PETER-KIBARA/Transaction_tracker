@@ -5,6 +5,7 @@ import 'package:transaction_tracker/injection/injection_container.dart';
 import 'package:transaction_tracker/routes/app_router.dart';
 import 'package:transaction_tracker/core/services/permission_service.dart';
 import 'package:transaction_tracker/core/services/sms_listener_service.dart';
+import 'package:transaction_tracker/core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,7 @@ void main() async {
   // Initialize SMS listener
   await _initializeSmsListener();
   
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 Future<void> _initializeSmsListener() async {
@@ -33,20 +34,20 @@ Future<void> _initializeSmsListener() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp.router(
-        title: 'SMS Transaction Analyzer',
-        theme: AppTheme.lightTheme(),
-        darkTheme: AppTheme.darkTheme(),
-        themeMode: ThemeMode.system,
-        routerConfig: appRouter,
-        debugShowCheckedModeBanner: false,
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    
+    return MaterialApp.router(
+      title: 'SMS Transaction Analyzer',
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
+      themeMode: themeMode,
+      routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

@@ -113,7 +113,8 @@ class SmsParsingService {
 
     // Generic transaction keywords
     if (lowerMessage.contains('received') ||
-        lowerMessage.contains('balance')) {
+        lowerMessage.contains('deposited') ||
+        lowerMessage.contains('credit')) {
       return AppConstants.typeDeposit;
     }
 

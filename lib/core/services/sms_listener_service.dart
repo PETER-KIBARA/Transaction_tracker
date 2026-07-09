@@ -12,7 +12,6 @@ class SmsListenerService {
   final SmsParsingService _parsingService;
   final SmsTransactionRepository _repository;
   final SmsReadingService _readingService;
-  final SmsQuery _query = SmsQuery();
   Timer? _pollingTimer;
   DateTime? _lastCheckTime;
   static const pollingInterval = Duration(seconds: 30);
