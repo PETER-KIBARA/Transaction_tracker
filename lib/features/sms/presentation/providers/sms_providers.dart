@@ -11,7 +11,7 @@ import 'package:transaction_tracker/features/sms/domain/usecases/sms_transaction
 part 'sms_providers.g.dart';
 
 // Database Provider
-@riverpod
+@Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
   return AppDatabase();
 }
