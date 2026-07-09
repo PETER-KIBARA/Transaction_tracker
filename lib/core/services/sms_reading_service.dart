@@ -22,12 +22,15 @@ class SmsReadingService {
   /// Get all SMS messages from device
   Future<List<RawSmsMessage>> getAllSms() async {
     try {
-      final messages = await _query.getAllSms;
+      final messages = await _query.querySms(
+        kinds: [SmsQueryKind.inbox],
+        count: 10000,
+      );
 
       return messages.map((sms) {
         return RawSmsMessage(
           messageBody: sms.body ?? '',
-          sender: sms.sender ?? 'Unknown',
+          sender: sms.address ?? 'Unknown', // ← fixed: was sms.sender
           timestamp: sms.date,
         );
       }).toList();
@@ -42,11 +45,23 @@ class SmsReadingService {
     required DateTime endDate,
   }) async {
     try {
-      final allSms = await getAllSms();
-      return allSms.where((sms) {
-        final smsDate = sms.timestamp;
+      final messages = await _query.querySms(
+        kinds: [SmsQueryKind.inbox],
+        count: 10000,
+      );
+
+      final filtered = messages.where((sms) {
+        final smsDate = sms.date;
         if (smsDate == null) return false;
         return smsDate.isAfter(startDate) && smsDate.isBefore(endDate);
+      }).toList();
+
+      return filtered.map((sms) {
+        return RawSmsMessage(
+          messageBody: sms.body ?? '',
+          sender: sms.address ?? 'Unknown',
+          timestamp: sms.date,
+        );
       }).toList();
     } catch (e) {
       throw SmsReadingException('Failed to filter SMS by date: $e');
@@ -56,11 +71,22 @@ class SmsReadingService {
   /// Get SMS messages from a specific sender
   Future<List<RawSmsMessage>> getSmsFromSender(String sender) async {
     try {
-      final allSms = await getAllSms();
-      return allSms
-          .where((sms) =>
-              sms.sender.toLowerCase().contains(sender.toLowerCase()))
-          .toList();
+      final messages = await _query.querySms(
+        kinds: [SmsQueryKind.inbox],
+        count: 10000,
+      );
+
+      final filtered = messages.where((sms) =>
+          (sms.address ?? '').toLowerCase().contains(sender.toLowerCase()),
+      ).toList();
+
+      return filtered.map((sms) {
+        return RawSmsMessage(
+          messageBody: sms.body ?? '',
+          sender: sms.address ?? 'Unknown',
+          timestamp: sms.date,
+        );
+      }).toList();
     } catch (e) {
       throw SmsReadingException('Failed to get SMS from sender: $e');
     }
@@ -73,10 +99,10 @@ class SmsReadingService {
 
       final hasTransactionKeywords =
           AppConstants.bankKeywords.any((keyword) => lowerBody.contains(keyword)) ||
-              AppConstants.mpesaKeywords.any((keyword) => lowerBody.contains(keyword)) ||
-              AppConstants.airtelKeywords.any((keyword) => lowerBody.contains(keyword)) ||
-              AppConstants.incomeKeywords.any((keyword) => lowerBody.contains(keyword)) ||
-              AppConstants.expenseKeywords.any((keyword) => lowerBody.contains(keyword));
+          AppConstants.mpesaKeywords.any((keyword) => lowerBody.contains(keyword)) ||
+          AppConstants.airtelKeywords.any((keyword) => lowerBody.contains(keyword)) ||
+          AppConstants.incomeKeywords.any((keyword) => lowerBody.contains(keyword)) ||
+          AppConstants.expenseKeywords.any((keyword) => lowerBody.contains(keyword));
 
       final amountRegex = RegExp(AppConstants.amountPattern);
       final hasAmount = amountRegex.hasMatch(lowerBody);

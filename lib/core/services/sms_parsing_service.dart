@@ -1,5 +1,4 @@
 import 'package:transaction_tracker/core/constants/app_constants.dart';
-import 'package:transaction_tracker/core/errors/exceptions.dart';
 import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
 import 'package:intl/intl.dart';
 
@@ -10,13 +9,19 @@ class SmsParsingService {
     try {
       if (messageBody.isEmpty) return null;
 
+      // Only process SMS from known financial senders
+      final isFinancialSender = AppConstants.trustedSenders.any(
+        (s) => sender.toUpperCase().contains(s.toUpperCase()),
+      );
+      if (!isFinancialSender) return null;
+
       // Determine transaction type
       final transactionType = _determineTransactionType(messageBody);
       if (transactionType == null) return null;
 
-      // Extract amount
+      // Extract amount - must be non-zero
       final amount = _extractAmount(messageBody);
-      if (amount == null) return null;
+      if (amount == null || amount <= 0) return null;
 
       // Extract date (or use current date)
       final dateTime = _extractDate(messageBody) ?? DateTime.now();
@@ -31,7 +36,7 @@ class SmsParsingService {
       final category = _determineCategory(messageBody, transactionType);
 
       return SmsTransactionEntity(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: '${sender}_${dateTime.millisecondsSinceEpoch}',
         sender: sender,
         messageBody: messageBody,
         amount: amount,
@@ -43,7 +48,7 @@ class SmsParsingService {
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      throw ParsingException('Failed to parse SMS: $e');
+      return null; // skip bad messages silently
     }
   }
 
@@ -59,14 +64,16 @@ class SmsParsingService {
     }
 
     // Check for withdrawal
-    if (lowerMessage.contains('withdraw') || lowerMessage.contains('withdrawal')) {
+    if (lowerMessage.contains('withdraw') ||
+        lowerMessage.contains('withdrawal')) {
       return AppConstants.typeWithdrawal;
     }
 
-    // Check for deposit
+    // Check for deposit/received
     if (lowerMessage.contains('deposit') ||
         lowerMessage.contains('deposited') ||
-        lowerMessage.contains('credited')) {
+        lowerMessage.contains('credited') ||
+        lowerMessage.contains('you have received')) {
       return AppConstants.typeDeposit;
     }
 
@@ -76,9 +83,7 @@ class SmsParsingService {
     }
 
     // Check for purchase
-    if (lowerMessage.contains('purchase') ||
-        lowerMessage.contains('bought') ||
-        lowerMessage.contains('purchase')) {
+    if (lowerMessage.contains('purchase') || lowerMessage.contains('bought')) {
       return AppConstants.typePurchase;
     }
 
@@ -108,7 +113,6 @@ class SmsParsingService {
 
     // Generic transaction keywords
     if (lowerMessage.contains('received') ||
-        lowerMessage.contains('account') ||
         lowerMessage.contains('balance')) {
       return AppConstants.typeDeposit;
     }
@@ -116,16 +120,23 @@ class SmsParsingService {
     return null;
   }
 
-  /// Extract amount from message
+  /// Extract first non-zero amount from message
   double? _extractAmount(String message) {
-    final amountRegex = RegExp(AppConstants.amountPattern, caseSensitive: false);
-    final match = amountRegex.firstMatch(message);
+    final amountRegex = RegExp(
+      AppConstants.amountPattern,
+      caseSensitive: false,
+    );
 
-    if (match != null) {
+    // Get all matches and return the FIRST non-zero amount
+    // Transaction cost Ksh0.00 appears later in M-Pesa messages
+    final matches = amountRegex.allMatches(message);
+    for (final match in matches) {
       final amountStr = match.group(1)?.replaceAll(',', '') ?? '';
-      return double.tryParse(amountStr);
+      final amount = double.tryParse(amountStr);
+      if (amount != null && amount > 0) {
+        return amount;
+      }
     }
-
     return null;
   }
 
@@ -137,8 +148,7 @@ class SmsParsingService {
 
       if (match != null) {
         final dateStr = match.group(0) ?? '';
-        final date = _parseDate(dateStr);
-        return date;
+        return _parseDate(dateStr);
       }
     } catch (e) {
       // Return null if date parsing fails
@@ -157,37 +167,49 @@ class SmsParsingService {
       'MM-dd-yyyy',
       'dd/MM/yy',
       'dd-MM-yy',
+      'd/M/yy',
+      'd/M/yyyy',
     ];
 
     for (final format in formats) {
       try {
-        return DateFormat(format).parse(dateStr);
+        final parsed = DateFormat(format).parse(dateStr);
+        // Fix 2-digit year parsing (0026 → 2026)
+        if (parsed.year < 100) {
+          return DateTime(
+            parsed.year + 2000,
+            parsed.month,
+            parsed.day,
+          );
+        }
+        return parsed;
       } catch (e) {
         continue;
       }
     }
-
     return null;
   }
 
-  /// Extract reference number from message
+  /// Extract reference number from start of M-Pesa message
   String? _extractReference(String message) {
+    // M-Pesa refs appear at the very start e.g. "UG9POAH0TK Confirmed."
     final refRegex = RegExp(AppConstants.refPattern, caseSensitive: false);
-    final match = refRegex.firstMatch(message);
+    final match = refRegex.firstMatch(message.trim());
     return match?.group(1);
   }
 
-  /// Extract balance if mentioned in message
+  /// Extract balance from message
   double? _extractBalance(String message) {
-    final balancePattern = r'(?:balance|bal)[:\s]*([\d,]+(?:\.\d{1,2})?)';
-    final balanceRegex = RegExp(balancePattern, caseSensitive: false);
+    final balanceRegex = RegExp(
+      AppConstants.balancePattern,
+      caseSensitive: false,
+    );
     final match = balanceRegex.firstMatch(message);
 
     if (match != null) {
       final balanceStr = match.group(1)?.replaceAll(',', '') ?? '';
       return double.tryParse(balanceStr);
     }
-
     return null;
   }
 
@@ -203,15 +225,18 @@ class SmsParsingService {
       case 'Payment':
         if (lowerMessage.contains('bill')) return 'Bills';
         if (lowerMessage.contains('utility')) return 'Utilities';
-        if (lowerMessage.contains('school') || lowerMessage.contains('education')) {
+        if (lowerMessage.contains('school') ||
+            lowerMessage.contains('education')) {
           return 'Education';
         }
         return 'Payment';
       case 'Purchase':
-        if (lowerMessage.contains('food') || lowerMessage.contains('restaurant')) {
+        if (lowerMessage.contains('food') ||
+            lowerMessage.contains('restaurant')) {
           return 'Food & Dining';
         }
-        if (lowerMessage.contains('grocery') || lowerMessage.contains('supermarket')) {
+        if (lowerMessage.contains('grocery') ||
+            lowerMessage.contains('supermarket')) {
           return 'Groceries';
         }
         if (lowerMessage.contains('fuel')) return 'Fuel';
@@ -221,6 +246,16 @@ class SmsParsingService {
         return 'Airtime & Credit';
       case 'Mobile Money':
         return 'Mobile Money';
+      case 'Deposit':
+        if (lowerMessage.contains('salary') ||
+            lowerMessage.contains('payroll')) {
+          return 'Salary';
+        }
+        return 'Deposit';
+      case 'Loan':
+        return 'Loan';
+      case 'Bank Transaction':
+        return 'Banking';
       default:
         return 'Other';
     }

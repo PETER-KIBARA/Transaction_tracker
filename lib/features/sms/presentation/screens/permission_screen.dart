@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:transaction_tracker/core/services/permission_service.dart';
+import 'package:transaction_tracker/core/services/sms_reading_service.dart';
+import 'package:transaction_tracker/core/services/sms_parsing_service.dart';
+import 'package:transaction_tracker/core/services/sms_listener_service.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
+import 'package:transaction_tracker/features/sms/presentation/providers/sms_providers.dart';
+import 'package:transaction_tracker/injection/injection_container.dart';
 
 /// Screen that explains and requests SMS permission
 class PermissionScreen extends ConsumerStatefulWidget {
@@ -13,13 +19,57 @@ class PermissionScreen extends ConsumerStatefulWidget {
 
 class _PermissionScreenState extends ConsumerState<PermissionScreen> {
   late PermissionService _permissionService;
+  late SmsReadingService _smsReadingService;
+  late SmsParsingService _smsParsingService;
+  late SmsListenerService _smsListenerService;
   bool _isRequesting = false;
   bool? _permissionDenied;
+  bool _isImporting = false;
 
   @override
   void initState() {
     super.initState();
     _permissionService = PermissionService();
+    _smsReadingService = getIt<SmsReadingService>();
+    _smsParsingService = getIt<SmsParsingService>();
+    _smsListenerService = getIt<SmsListenerService>();
+  }
+
+  Future<void> _importExistingSms() async {
+    setState(() => _isImporting = true);
+
+    try {
+      final allSms = await _smsReadingService.getAllSms();
+      final transactionSms = _smsReadingService.filterTransactionSms(allSms);
+
+      final transactions = <SmsTransactionEntity>[];
+      for (final sms in transactionSms) {
+        final transaction = _smsParsingService.parseSms(sms.messageBody, sms.sender);
+        if (transaction != null) {
+          transactions.add(transaction);
+        }
+      }
+
+      if (transactions.isNotEmpty) {
+        await ref.read(addMultipleTransactionsUseCaseProvider)(transactions);
+      }
+
+      // Start SMS listener for real-time detection
+      await _smsListenerService.startListening();
+
+      if (mounted) {
+        setState(() => _isImporting = false);
+        context.go('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isImporting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error importing SMS: $e')),
+        );
+        context.go('/home');
+      }
+    }
   }
 
   Future<void> _requestPermission() async {
@@ -34,9 +84,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
         });
 
         if (granted) {
-          if (mounted) {
-            context.go('/home');
-          }
+          await _importExistingSms();
         }
       }
     } catch (e) {

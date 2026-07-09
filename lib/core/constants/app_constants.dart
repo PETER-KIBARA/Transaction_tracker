@@ -65,13 +65,44 @@ class AppConstants {
     'charged',
   ];
 
-  // Regex patterns
+  // Trusted financial senders
+  static const List<String> trustedSenders = [
+    'MPESA',
+    'M-PESA',
+    'Safaricom',
+    'SAFARICOM',
+    'AIRTEL',
+    'Airtel',
+    'EQUITY',
+    'Equity',
+    'KCB',
+    'NCBA',
+    'COOP',
+    'ABSA',
+    'STANBIC',
+    'FAMILY',
+    'DTB',
+    'SIDIAN',
+    'POSTBANK',
+    'COOPERATIVE',
+  ];
+
+  // Regex patterns - Kenyan M-Pesa format specific
   static const String amountPattern =
-      r'(?:ksh|kes|kES|KES|sh\.?|Sh\.?|₹|Ksh|KSH\.?|\$)?[\s]?([\d,]+(?:\.\d{1,2})?)';
+      r'(?:Ksh|KES|ksh|kes|KSH)\s?([\d,]+(?:\.\d{1,2})?)';
+
+  static const String balancePattern =
+      r'balance is\s*(?:Ksh|KES|ksh|KSH)\s?([\d,]+(?:\.\d{1,2})?)';
+
   static const String datePattern =
-      r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{2,4}[-/]\d{1,2}[-/]\d{1,2})';
-  static const String timePattern = r'(\d{1,2}:\d{2}\s?[APap][Mm])';
-  static const String refPattern = r'(?:ref|reference|code|txn)[:\s]*([A-Z0-9]{6,15})';
+      r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})';
+
+  static const String timePattern =
+      r'(\d{1,2}:\d{2}\s?[APap][Mm])';
+
+  // M-Pesa refs start with 2 letters followed by alphanumeric (e.g. UG9POAH0TK)
+  static const String refPattern =
+      r'^([A-Z]{2}[A-Z0-9]{8})';
 
   // Database
   static const String defaultCategoryName = 'Uncategorized';
