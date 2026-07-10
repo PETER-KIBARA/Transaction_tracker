@@ -34,16 +34,9 @@ class AppConstants {
     'atm',
   ];
 
-  static const List<String> mpesaKeywords = [
-    'mpesa',
-    'm-pesa',
-    'safaricom',
-  ];
+  static const List<String> mpesaKeywords = ['mpesa', 'm-pesa', 'safaricom'];
 
-  static const List<String> airtelKeywords = [
-    'airtel',
-    'airtel money',
-  ];
+  static const List<String> airtelKeywords = ['airtel', 'airtel money'];
 
   static const List<String> incomeKeywords = [
     'received',
@@ -89,20 +82,20 @@ class AppConstants {
 
   // Regex patterns - Kenyan M-Pesa format specific
   static const String amountPattern =
-      r'(?:Ksh|KES|ksh|kes|KSH)\s?([\d,]+(?:\.\d{1,2})?)';
+      r'(?:Ksh|KES|ksh|kes|KSH)\.?\s?([\d,]+(?:\.\d{1,2})?)';
 
   static const String balancePattern =
       r'balance is\s*(?:Ksh|KES|ksh|KSH)\s?([\d,]+(?:\.\d{1,2})?)';
 
-  static const String datePattern =
-      r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})';
-
-  static const String timePattern =
-      r'(\d{1,2}:\d{2}\s?[APap][Mm])';
+  /// Kenyan transaction dates are day-first: `dd/mm/yy` or `dd-mm-yyyy`.
+  ///
+  /// Captures day, separator, month, year, hour, minute, and an optional
+  /// AM/PM suffix. The separator back-reference prevents mixed separators.
+  static const String dateTimePattern =
+      r'\bon\s+(\d{1,2})([-/])(\d{1,2})\2(\d{4}|\d{2})(?:\s+(?:at\s+)?(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?)?';
 
   // M-Pesa refs start with 2 letters followed by alphanumeric (e.g. UG9POAH0TK)
-  static const String refPattern =
-      r'^([A-Z]{2}[A-Z0-9]{8})';
+  static const String refPattern = r'^([A-Z]{2}[A-Z0-9]{8})';
 
   // Database
   static const String defaultCategoryName = 'Uncategorized';

@@ -1,243 +1,159 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:transaction_tracker/core/utils/app_utils.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/dashboard_summary.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
 import 'package:transaction_tracker/features/sms/presentation/providers/sms_providers.dart';
-import 'package:transaction_tracker/features/sms/presentation/widgets/error_widget.dart';
 import 'package:transaction_tracker/features/sms/presentation/widgets/loading_widget.dart';
+import 'package:transaction_tracker/features/sms/presentation/widgets/transaction_list.dart';
 
-/// Dashboard screen showing key financial metrics
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(const Duration(days: 1));
-
-    final statisticsAsync = ref.watch(
-      monthlyStatisticsProvider(startDate: startOfMonth, endDate: endOfMonth),
-    );
-    final transactionsAsync = ref.watch(paginatedTransactionsProvider(page: 1));
-
+    final summary = ref.watch(dashboardSummaryProvider);
+    final transactions = ref.watch(paginatedTransactionsProvider(page: 1));
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Dashboard')),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(monthlyStatisticsProvider(startDate: startOfMonth, endDate: endOfMonth));
-          ref.invalidate(paginatedTransactionsProvider(page: 1));
+          ref.invalidate(dashboardSummaryProvider);
+          ref.invalidate(paginatedTransactionsProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Statistics Cards
-                statisticsAsync.when(
-                  data: (stats) => _buildStatisticsCards(context, stats),
-                  loading: () => const LoadingWidget(height: 180),
-                  error: (e, st) => AppErrorWidget(error: e.toString()),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              summary.when(
+                data: (data) => _SummaryContent(summary: data),
+                loading: () => const LoadingWidget(height: 180),
+                error: (e, _) => Text('Could not load summary: $e'),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Recent Transactions',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              transactions.when(
+                data: (items) => TransactionList(
+                  transactions: items.take(5).toList(),
+                  shrinkWrap: true,
                 ),
-                const SizedBox(height: 32),
-                // Recent Transactions
-                Text(
-                  'Recent Transactions',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                transactionsAsync.when(
-                  data: (transactions) {
-                    if (transactions.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Text(
-                            'No transactions found. Scan your SMS to get started.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: transactions.take(5).length,
-                      itemBuilder: (context, index) {
-                        final txn = transactions[index];
-                        final isExpense = txn.transactionType.toLowerCase().contains('withdrawal') ||
-                            txn.transactionType.toLowerCase().contains('payment') ||
-                            txn.transactionType.toLowerCase().contains('purchase');
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: isExpense
-                                        ? Colors.red.withOpacity(0.1)
-                                        : Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    isExpense ? Icons.arrow_upward : Icons.arrow_downward,
-                                    color: isExpense ? Colors.red : Colors.green,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        txn.category,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                      Text(
-                                        AppUtils.formatDate(txn.transactionDate, 'dd MMM yyyy'),
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              color: Colors.grey,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  '${isExpense ? '-' : '+'}${AppUtils.formatSimpleCurrency(txn.amount)}',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: isExpense ? Colors.red : Colors.green,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const LoadingWidget(height: 150),
-                  error: (e, st) => AppErrorWidget(error: e.toString()),
-                ),
-              ],
-            ),
+                loading: () => const LoadingWidget(height: 120),
+                error: (e, _) => Text('$e'),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildStatisticsCards(BuildContext context, Map<String, dynamic> stats) {
-    final totalIncome = (stats['totalIncome'] as num).toDouble();
-    final totalExpenses = (stats['totalExpenses'] as num).toDouble();
-    final savings = (stats['savings'] as num).toDouble();
+class _SummaryContent extends StatelessWidget {
+  const _SummaryContent({required this.summary});
+  final DashboardSummary summary;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _StatCard(
+            title: 'Total Earnings',
+            value: summary.totalEarnings,
+            color: Colors.green,
+          ),
+          _StatCard(
+            title: 'Total Expenses',
+            value: summary.totalExpenses,
+            color: Colors.red,
+          ),
+          _StatCard(
+            title: 'Transaction Costs',
+            value: summary.totalTransactionCosts,
+            color: Colors.orange,
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
+      Text('Providers', style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 8),
+      for (final provider in [
+        TransactionProvider.mpesa,
+        TransactionProvider.airtel,
+        TransactionProvider.equity,
+      ])
+        _ProviderCard(
+          provider: provider,
+          summary: summary.providers[provider]!,
+        ),
+    ],
+  );
+}
 
-    return Column(
-      children: [
-        Row(
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+  final String title;
+  final double value;
+  final Color color;
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 170,
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildStatCard(
-                context,
-                title: 'Income',
-                amount: totalIncome,
-                icon: Icons.trending_up,
-                color: Colors.green,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                context,
-                title: 'Expenses',
-                amount: totalExpenses,
-                icon: Icons.trending_down,
-                color: Colors.red,
-              ),
+            Text(title),
+            const SizedBox(height: 6),
+            Text(
+              AppUtils.formatCurrency(value),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        _buildStatCard(
-          context,
-          title: 'Savings',
-          amount: savings,
-          icon: Icons.savings,
-          color: Colors.blue,
-          fullWidth: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(
-    BuildContext context, {
-    required String title,
-    required double amount,
-    required IconData icon,
-    required Color color,
-    bool fullWidth = false,
-  }) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: color,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    Icon(icon, color: color, size: 20),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  AppUtils.formatCurrency(amount),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+class _ProviderCard extends StatelessWidget {
+  const _ProviderCard({required this.provider, required this.summary});
+  final TransactionProvider provider;
+  final ProviderSummary summary;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: Icon(switch (provider) {
+        TransactionProvider.mpesa => Icons.account_balance_wallet,
+        TransactionProvider.airtel => Icons.phone_android,
+        TransactionProvider.equity => Icons.account_balance,
+        TransactionProvider.unknown => Icons.help_outline,
+      }),
+      title: Text(switch (provider) {
+        TransactionProvider.mpesa => 'M-Pesa',
+        TransactionProvider.airtel => 'Airtel Money',
+        TransactionProvider.equity => 'Equity',
+        TransactionProvider.unknown => 'Unknown',
+      }),
+      subtitle: Text(
+        '${summary.count} transactions · In ${AppUtils.formatSimpleCurrency(summary.moneyIn)} · Out ${AppUtils.formatSimpleCurrency(summary.moneyOut)}',
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => context.push('/providers/${provider.name}'),
+    ),
+  );
 }

@@ -9,13 +9,13 @@ import 'package:transaction_tracker/core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize dependency injection
   configureDependencies();
-  
+
   // Initialize SMS listener
   await _initializeSmsListener();
-  
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -23,7 +23,7 @@ Future<void> _initializeSmsListener() async {
   try {
     final permissionService = getIt<PermissionService>();
     final smsListenerService = getIt<SmsListenerService>();
-    
+
     final hasPermission = await permissionService.isSmsPermissionGranted();
     if (hasPermission) {
       await smsListenerService.startListening();
@@ -40,9 +40,9 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    
+
     return MaterialApp.router(
-      title: 'SMS Transaction Analyzer',
+      title: 'SMS LEDGER',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,

@@ -15,22 +15,28 @@ final getIt = GetIt.instance;
 void configureDependencies() {
   // Database
   getIt.registerSingleton<AppDatabase>(AppDatabase());
-  
+
   // Data Source
-  getIt.registerLazySingleton<LocalSmsDataSource>(() => LocalSmsDataSourceImpl(getIt<AppDatabase>()));
-  
+  getIt.registerLazySingleton<LocalSmsDataSource>(
+    () => LocalSmsDataSourceImpl(getIt<AppDatabase>()),
+  );
+
   // Repository
-  getIt.registerLazySingleton<SmsTransactionRepository>(() => SmsTransactionRepositoryImpl(getIt<LocalSmsDataSource>()));
-  
+  getIt.registerLazySingleton<SmsTransactionRepository>(
+    () => SmsTransactionRepositoryImpl(getIt<LocalSmsDataSource>()),
+  );
+
   // Core Services
   getIt.registerSingleton<PermissionService>(PermissionService());
   getIt.registerSingleton<SmsReadingService>(SmsReadingService());
   getIt.registerSingleton<SmsParsingService>(SmsParsingService());
-  
+
   // SMS Listener Service
-  getIt.registerSingleton<SmsListenerService>(SmsListenerService(
-    parsingService: getIt<SmsParsingService>(),
-    repository: getIt<SmsTransactionRepository>(),
-    readingService: getIt<SmsReadingService>(),
-  ));
+  getIt.registerSingleton<SmsListenerService>(
+    SmsListenerService(
+      parsingService: getIt<SmsParsingService>(),
+      repository: getIt<SmsTransactionRepository>(),
+      readingService: getIt<SmsReadingService>(),
+    ),
+  );
 }

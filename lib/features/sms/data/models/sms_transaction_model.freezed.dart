@@ -28,6 +28,8 @@ mixin _$SmsTransactionModel {
   String get transactionType => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
   DateTime get transactionDate => throw _privateConstructorUsedError;
+  TransactionProvider get provider => throw _privateConstructorUsedError;
+  double? get transactionCost => throw _privateConstructorUsedError;
   double? get balance => throw _privateConstructorUsedError;
   String? get referenceNumber => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -57,6 +59,8 @@ abstract class $SmsTransactionModelCopyWith<$Res> {
     String transactionType,
     String category,
     DateTime transactionDate,
+    TransactionProvider provider,
+    double? transactionCost,
     double? balance,
     String? referenceNumber,
     DateTime createdAt,
@@ -85,6 +89,8 @@ class _$SmsTransactionModelCopyWithImpl<$Res, $Val extends SmsTransactionModel>
     Object? transactionType = null,
     Object? category = null,
     Object? transactionDate = null,
+    Object? provider = null,
+    Object? transactionCost = freezed,
     Object? balance = freezed,
     Object? referenceNumber = freezed,
     Object? createdAt = null,
@@ -119,6 +125,14 @@ class _$SmsTransactionModelCopyWithImpl<$Res, $Val extends SmsTransactionModel>
                 ? _value.transactionDate
                 : transactionDate // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            provider: null == provider
+                ? _value.provider
+                : provider // ignore: cast_nullable_to_non_nullable
+                      as TransactionProvider,
+            transactionCost: freezed == transactionCost
+                ? _value.transactionCost
+                : transactionCost // ignore: cast_nullable_to_non_nullable
+                      as double?,
             balance: freezed == balance
                 ? _value.balance
                 : balance // ignore: cast_nullable_to_non_nullable
@@ -154,6 +168,8 @@ abstract class _$$SmsTransactionModelImplCopyWith<$Res>
     String transactionType,
     String category,
     DateTime transactionDate,
+    TransactionProvider provider,
+    double? transactionCost,
     double? balance,
     String? referenceNumber,
     DateTime createdAt,
@@ -181,6 +197,8 @@ class __$$SmsTransactionModelImplCopyWithImpl<$Res>
     Object? transactionType = null,
     Object? category = null,
     Object? transactionDate = null,
+    Object? provider = null,
+    Object? transactionCost = freezed,
     Object? balance = freezed,
     Object? referenceNumber = freezed,
     Object? createdAt = null,
@@ -215,6 +233,14 @@ class __$$SmsTransactionModelImplCopyWithImpl<$Res>
             ? _value.transactionDate
             : transactionDate // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        provider: null == provider
+            ? _value.provider
+            : provider // ignore: cast_nullable_to_non_nullable
+                  as TransactionProvider,
+        transactionCost: freezed == transactionCost
+            ? _value.transactionCost
+            : transactionCost // ignore: cast_nullable_to_non_nullable
+                  as double?,
         balance: freezed == balance
             ? _value.balance
             : balance // ignore: cast_nullable_to_non_nullable
@@ -243,6 +269,8 @@ class _$SmsTransactionModelImpl extends _SmsTransactionModel {
     required this.transactionType,
     required this.category,
     required this.transactionDate,
+    this.provider = TransactionProvider.unknown,
+    this.transactionCost,
     this.balance,
     this.referenceNumber,
     required this.createdAt,
@@ -266,6 +294,11 @@ class _$SmsTransactionModelImpl extends _SmsTransactionModel {
   @override
   final DateTime transactionDate;
   @override
+  @JsonKey()
+  final TransactionProvider provider;
+  @override
+  final double? transactionCost;
+  @override
   final double? balance;
   @override
   final String? referenceNumber;
@@ -274,7 +307,7 @@ class _$SmsTransactionModelImpl extends _SmsTransactionModel {
 
   @override
   String toString() {
-    return 'SmsTransactionModel(id: $id, sender: $sender, messageBody: $messageBody, amount: $amount, transactionType: $transactionType, category: $category, transactionDate: $transactionDate, balance: $balance, referenceNumber: $referenceNumber, createdAt: $createdAt)';
+    return 'SmsTransactionModel(id: $id, sender: $sender, messageBody: $messageBody, amount: $amount, transactionType: $transactionType, category: $category, transactionDate: $transactionDate, provider: $provider, transactionCost: $transactionCost, balance: $balance, referenceNumber: $referenceNumber, createdAt: $createdAt)';
   }
 
   @override
@@ -293,6 +326,10 @@ class _$SmsTransactionModelImpl extends _SmsTransactionModel {
                 other.category == category) &&
             (identical(other.transactionDate, transactionDate) ||
                 other.transactionDate == transactionDate) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            (identical(other.transactionCost, transactionCost) ||
+                other.transactionCost == transactionCost) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.referenceNumber, referenceNumber) ||
                 other.referenceNumber == referenceNumber) &&
@@ -311,6 +348,8 @@ class _$SmsTransactionModelImpl extends _SmsTransactionModel {
     transactionType,
     category,
     transactionDate,
+    provider,
+    transactionCost,
     balance,
     referenceNumber,
     createdAt,
@@ -342,6 +381,8 @@ abstract class _SmsTransactionModel extends SmsTransactionModel {
     required final String transactionType,
     required final String category,
     required final DateTime transactionDate,
+    final TransactionProvider provider,
+    final double? transactionCost,
     final double? balance,
     final String? referenceNumber,
     required final DateTime createdAt,
@@ -365,6 +406,10 @@ abstract class _SmsTransactionModel extends SmsTransactionModel {
   String get category;
   @override
   DateTime get transactionDate;
+  @override
+  TransactionProvider get provider;
+  @override
+  double? get transactionCost;
   @override
   double? get balance;
   @override

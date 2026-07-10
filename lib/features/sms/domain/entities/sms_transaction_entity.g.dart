@@ -16,6 +16,10 @@ _$SmsTransactionEntityImpl _$$SmsTransactionEntityImplFromJson(
   transactionType: json['transactionType'] as String,
   category: json['category'] as String,
   transactionDate: DateTime.parse(json['transactionDate'] as String),
+  provider:
+      $enumDecodeNullable(_$TransactionProviderEnumMap, json['provider']) ??
+      TransactionProvider.unknown,
+  transactionCost: (json['transactionCost'] as num?)?.toDouble(),
   balance: (json['balance'] as num?)?.toDouble(),
   referenceNumber: json['referenceNumber'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
@@ -31,7 +35,16 @@ Map<String, dynamic> _$$SmsTransactionEntityImplToJson(
   'transactionType': instance.transactionType,
   'category': instance.category,
   'transactionDate': instance.transactionDate.toIso8601String(),
+  'provider': _$TransactionProviderEnumMap[instance.provider]!,
+  'transactionCost': instance.transactionCost,
   'balance': instance.balance,
   'referenceNumber': instance.referenceNumber,
   'createdAt': instance.createdAt.toIso8601String(),
+};
+
+const _$TransactionProviderEnumMap = {
+  TransactionProvider.mpesa: 'mpesa',
+  TransactionProvider.airtel: 'airtel',
+  TransactionProvider.equity: 'equity',
+  TransactionProvider.unknown: 'unknown',
 };

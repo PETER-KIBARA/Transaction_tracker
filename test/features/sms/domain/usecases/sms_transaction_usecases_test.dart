@@ -4,7 +4,8 @@ import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction
 import 'package:transaction_tracker/features/sms/domain/repositories/sms_transaction_repository.dart';
 import 'package:transaction_tracker/features/sms/domain/usecases/sms_transaction_usecases.dart';
 
-class MockSmsTransactionRepository extends Mock implements SmsTransactionRepository {}
+class MockSmsTransactionRepository extends Mock
+    implements SmsTransactionRepository {}
 
 void main() {
   late MockSmsTransactionRepository mockRepository;
@@ -17,8 +18,9 @@ void main() {
     test('GetAllTransactionsUseCase returns list of transactions', () async {
       // Arrange
       const mockTransactions = <SmsTransactionEntity>[];
-      when(() => mockRepository.getAllTransactions())
-          .thenAnswer((_) async => mockTransactions);
+      when(
+        () => mockRepository.getAllTransactions(),
+      ).thenAnswer((_) async => mockTransactions);
 
       final useCase = GetAllTransactionsUseCase(mockRepository);
 
@@ -32,7 +34,9 @@ void main() {
 
     test('GetTransactionCountUseCase returns count', () async {
       // Arrange
-      when(() => mockRepository.getTransactionCount()).thenAnswer((_) async => 5);
+      when(
+        () => mockRepository.getTransactionCount(),
+      ).thenAnswer((_) async => 5);
 
       final useCase = GetTransactionCountUseCase(mockRepository);
 
@@ -47,8 +51,9 @@ void main() {
     test('SearchTransactionsUseCase searches transactions', () async {
       // Arrange
       const mockTransactions = <SmsTransactionEntity>[];
-      when(() => mockRepository.searchTransactions(any()))
-          .thenAnswer((_) async => mockTransactions);
+      when(
+        () => mockRepository.searchTransactions(any()),
+      ).thenAnswer((_) async => mockTransactions);
 
       final useCase = SearchTransactionsUseCase(mockRepository);
 
@@ -73,8 +78,9 @@ void main() {
         createdAt: DateTime.fromMicrosecondsSinceEpoch(0),
       );
 
-      when(() => mockRepository.addTransaction(any()))
-          .thenAnswer((_) async => {});
+      when(
+        () => mockRepository.addTransaction(any()),
+      ).thenAnswer((_) async => {});
 
       final useCase = AddTransactionUseCase(mockRepository);
 
@@ -88,8 +94,9 @@ void main() {
     test('GetPaginatedTransactionsUseCase returns paginated results', () async {
       // Arrange
       const mockTransactions = <SmsTransactionEntity>[];
-      when(() => mockRepository.getTransactionsPaginated(any(), any()))
-          .thenAnswer((_) async => mockTransactions);
+      when(
+        () => mockRepository.getTransactionsPaginated(any(), any()),
+      ).thenAnswer((_) async => mockTransactions);
 
       final useCase = GetPaginatedTransactionsUseCase(mockRepository);
 
@@ -112,8 +119,9 @@ void main() {
       final startDate = DateTime.now();
       final endDate = DateTime.now();
 
-      when(() => mockRepository.getStatistics(any(), any()))
-          .thenAnswer((_) async => mockStats);
+      when(
+        () => mockRepository.getStatistics(any(), any()),
+      ).thenAnswer((_) async => mockStats);
 
       final useCase = GetStatisticsUseCase(mockRepository);
 

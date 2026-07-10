@@ -21,7 +21,10 @@ class AppUtils {
   }
 
   /// Format date and time
-  static String formatDateTime(DateTime dateTime, [String format = 'dd MMM yyyy HH:mm']) {
+  static String formatDateTime(
+    DateTime dateTime, [
+    String format = 'dd MMM yyyy HH:mm',
+  ]) {
     return DateFormat(format).format(dateTime);
   }
 
@@ -85,14 +88,22 @@ class AppUtils {
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
     return months[month - 1];
   }
 
   /// Get day name
   static String getDayName(int day) {
-    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     return days[day - 1];
   }
 }

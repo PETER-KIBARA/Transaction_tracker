@@ -81,6 +81,29 @@ class $SmsTransactionsTable extends SmsTransactions
         type: DriftSqlType.dateTime,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _providerMeta = const VerificationMeta(
+    'provider',
+  );
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+    'provider',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unknown'),
+  );
+  static const VerificationMeta _transactionCostMeta = const VerificationMeta(
+    'transactionCost',
+  );
+  @override
+  late final GeneratedColumn<double> transactionCost = GeneratedColumn<double>(
+    'transaction_cost',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _balanceMeta = const VerificationMeta(
     'balance',
   );
@@ -123,6 +146,8 @@ class $SmsTransactionsTable extends SmsTransactions
     transactionType,
     category,
     transactionDate,
+    provider,
+    transactionCost,
     balance,
     referenceNumber,
     createdAt,
@@ -201,6 +226,21 @@ class $SmsTransactionsTable extends SmsTransactions
     } else if (isInserting) {
       context.missing(_transactionDateMeta);
     }
+    if (data.containsKey('provider')) {
+      context.handle(
+        _providerMeta,
+        provider.isAcceptableOrUnknown(data['provider']!, _providerMeta),
+      );
+    }
+    if (data.containsKey('transaction_cost')) {
+      context.handle(
+        _transactionCostMeta,
+        transactionCost.isAcceptableOrUnknown(
+          data['transaction_cost']!,
+          _transactionCostMeta,
+        ),
+      );
+    }
     if (data.containsKey('balance')) {
       context.handle(
         _balanceMeta,
@@ -265,6 +305,14 @@ class $SmsTransactionsTable extends SmsTransactions
         DriftSqlType.dateTime,
         data['${effectivePrefix}transaction_date'],
       )!,
+      provider: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider'],
+      )!,
+      transactionCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}transaction_cost'],
+      ),
       balance: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}balance'],
@@ -294,6 +342,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
   final String transactionType;
   final String category;
   final DateTime transactionDate;
+  final String provider;
+  final double? transactionCost;
   final double? balance;
   final String? referenceNumber;
   final DateTime createdAt;
@@ -305,6 +355,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
     required this.transactionType,
     required this.category,
     required this.transactionDate,
+    required this.provider,
+    this.transactionCost,
     this.balance,
     this.referenceNumber,
     required this.createdAt,
@@ -319,6 +371,10 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
     map['transaction_type'] = Variable<String>(transactionType);
     map['category'] = Variable<String>(category);
     map['transaction_date'] = Variable<DateTime>(transactionDate);
+    map['provider'] = Variable<String>(provider);
+    if (!nullToAbsent || transactionCost != null) {
+      map['transaction_cost'] = Variable<double>(transactionCost);
+    }
     if (!nullToAbsent || balance != null) {
       map['balance'] = Variable<double>(balance);
     }
@@ -338,6 +394,10 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
       transactionType: Value(transactionType),
       category: Value(category),
       transactionDate: Value(transactionDate),
+      provider: Value(provider),
+      transactionCost: transactionCost == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transactionCost),
       balance: balance == null && nullToAbsent
           ? const Value.absent()
           : Value(balance),
@@ -361,6 +421,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
       transactionType: serializer.fromJson<String>(json['transactionType']),
       category: serializer.fromJson<String>(json['category']),
       transactionDate: serializer.fromJson<DateTime>(json['transactionDate']),
+      provider: serializer.fromJson<String>(json['provider']),
+      transactionCost: serializer.fromJson<double?>(json['transactionCost']),
       balance: serializer.fromJson<double?>(json['balance']),
       referenceNumber: serializer.fromJson<String?>(json['referenceNumber']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -377,6 +439,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
       'transactionType': serializer.toJson<String>(transactionType),
       'category': serializer.toJson<String>(category),
       'transactionDate': serializer.toJson<DateTime>(transactionDate),
+      'provider': serializer.toJson<String>(provider),
+      'transactionCost': serializer.toJson<double?>(transactionCost),
       'balance': serializer.toJson<double?>(balance),
       'referenceNumber': serializer.toJson<String?>(referenceNumber),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -391,6 +455,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
     String? transactionType,
     String? category,
     DateTime? transactionDate,
+    String? provider,
+    Value<double?> transactionCost = const Value.absent(),
     Value<double?> balance = const Value.absent(),
     Value<String?> referenceNumber = const Value.absent(),
     DateTime? createdAt,
@@ -402,6 +468,10 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
     transactionType: transactionType ?? this.transactionType,
     category: category ?? this.category,
     transactionDate: transactionDate ?? this.transactionDate,
+    provider: provider ?? this.provider,
+    transactionCost: transactionCost.present
+        ? transactionCost.value
+        : this.transactionCost,
     balance: balance.present ? balance.value : this.balance,
     referenceNumber: referenceNumber.present
         ? referenceNumber.value
@@ -423,6 +493,10 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
       transactionDate: data.transactionDate.present
           ? data.transactionDate.value
           : this.transactionDate,
+      provider: data.provider.present ? data.provider.value : this.provider,
+      transactionCost: data.transactionCost.present
+          ? data.transactionCost.value
+          : this.transactionCost,
       balance: data.balance.present ? data.balance.value : this.balance,
       referenceNumber: data.referenceNumber.present
           ? data.referenceNumber.value
@@ -441,6 +515,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
           ..write('transactionType: $transactionType, ')
           ..write('category: $category, ')
           ..write('transactionDate: $transactionDate, ')
+          ..write('provider: $provider, ')
+          ..write('transactionCost: $transactionCost, ')
           ..write('balance: $balance, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('createdAt: $createdAt')
@@ -457,6 +533,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
     transactionType,
     category,
     transactionDate,
+    provider,
+    transactionCost,
     balance,
     referenceNumber,
     createdAt,
@@ -472,6 +550,8 @@ class SmsTransaction extends DataClass implements Insertable<SmsTransaction> {
           other.transactionType == this.transactionType &&
           other.category == this.category &&
           other.transactionDate == this.transactionDate &&
+          other.provider == this.provider &&
+          other.transactionCost == this.transactionCost &&
           other.balance == this.balance &&
           other.referenceNumber == this.referenceNumber &&
           other.createdAt == this.createdAt);
@@ -485,6 +565,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
   final Value<String> transactionType;
   final Value<String> category;
   final Value<DateTime> transactionDate;
+  final Value<String> provider;
+  final Value<double?> transactionCost;
   final Value<double?> balance;
   final Value<String?> referenceNumber;
   final Value<DateTime> createdAt;
@@ -497,6 +579,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
     this.transactionType = const Value.absent(),
     this.category = const Value.absent(),
     this.transactionDate = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.transactionCost = const Value.absent(),
     this.balance = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -510,6 +594,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
     required String transactionType,
     required String category,
     required DateTime transactionDate,
+    this.provider = const Value.absent(),
+    this.transactionCost = const Value.absent(),
     this.balance = const Value.absent(),
     this.referenceNumber = const Value.absent(),
     required DateTime createdAt,
@@ -530,6 +616,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
     Expression<String>? transactionType,
     Expression<String>? category,
     Expression<DateTime>? transactionDate,
+    Expression<String>? provider,
+    Expression<double>? transactionCost,
     Expression<double>? balance,
     Expression<String>? referenceNumber,
     Expression<DateTime>? createdAt,
@@ -543,6 +631,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
       if (transactionType != null) 'transaction_type': transactionType,
       if (category != null) 'category': category,
       if (transactionDate != null) 'transaction_date': transactionDate,
+      if (provider != null) 'provider': provider,
+      if (transactionCost != null) 'transaction_cost': transactionCost,
       if (balance != null) 'balance': balance,
       if (referenceNumber != null) 'reference_number': referenceNumber,
       if (createdAt != null) 'created_at': createdAt,
@@ -558,6 +648,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
     Value<String>? transactionType,
     Value<String>? category,
     Value<DateTime>? transactionDate,
+    Value<String>? provider,
+    Value<double?>? transactionCost,
     Value<double?>? balance,
     Value<String?>? referenceNumber,
     Value<DateTime>? createdAt,
@@ -571,6 +663,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
       transactionType: transactionType ?? this.transactionType,
       category: category ?? this.category,
       transactionDate: transactionDate ?? this.transactionDate,
+      provider: provider ?? this.provider,
+      transactionCost: transactionCost ?? this.transactionCost,
       balance: balance ?? this.balance,
       referenceNumber: referenceNumber ?? this.referenceNumber,
       createdAt: createdAt ?? this.createdAt,
@@ -602,6 +696,12 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
     if (transactionDate.present) {
       map['transaction_date'] = Variable<DateTime>(transactionDate.value);
     }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
+    }
+    if (transactionCost.present) {
+      map['transaction_cost'] = Variable<double>(transactionCost.value);
+    }
     if (balance.present) {
       map['balance'] = Variable<double>(balance.value);
     }
@@ -627,6 +727,8 @@ class SmsTransactionsCompanion extends UpdateCompanion<SmsTransaction> {
           ..write('transactionType: $transactionType, ')
           ..write('category: $category, ')
           ..write('transactionDate: $transactionDate, ')
+          ..write('provider: $provider, ')
+          ..write('transactionCost: $transactionCost, ')
           ..write('balance: $balance, ')
           ..write('referenceNumber: $referenceNumber, ')
           ..write('createdAt: $createdAt, ')
@@ -1412,6 +1514,8 @@ typedef $$SmsTransactionsTableCreateCompanionBuilder =
       required String transactionType,
       required String category,
       required DateTime transactionDate,
+      Value<String> provider,
+      Value<double?> transactionCost,
       Value<double?> balance,
       Value<String?> referenceNumber,
       required DateTime createdAt,
@@ -1426,6 +1530,8 @@ typedef $$SmsTransactionsTableUpdateCompanionBuilder =
       Value<String> transactionType,
       Value<String> category,
       Value<DateTime> transactionDate,
+      Value<String> provider,
+      Value<double?> transactionCost,
       Value<double?> balance,
       Value<String?> referenceNumber,
       Value<DateTime> createdAt,
@@ -1473,6 +1579,16 @@ class $$SmsTransactionsTableFilterComposer
 
   ColumnFilters<DateTime> get transactionDate => $composableBuilder(
     column: $table.transactionDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get provider => $composableBuilder(
+    column: $table.provider,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get transactionCost => $composableBuilder(
+    column: $table.transactionCost,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1536,6 +1652,16 @@ class $$SmsTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get provider => $composableBuilder(
+    column: $table.provider,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get transactionCost => $composableBuilder(
+    column: $table.transactionCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get balance => $composableBuilder(
     column: $table.balance,
     builder: (column) => ColumnOrderings(column),
@@ -1585,6 +1711,14 @@ class $$SmsTransactionsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get transactionDate => $composableBuilder(
     column: $table.transactionDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get provider =>
+      $composableBuilder(column: $table.provider, builder: (column) => column);
+
+  GeneratedColumn<double> get transactionCost => $composableBuilder(
+    column: $table.transactionCost,
     builder: (column) => column,
   );
 
@@ -1644,6 +1778,8 @@ class $$SmsTransactionsTableTableManager
                 Value<String> transactionType = const Value.absent(),
                 Value<String> category = const Value.absent(),
                 Value<DateTime> transactionDate = const Value.absent(),
+                Value<String> provider = const Value.absent(),
+                Value<double?> transactionCost = const Value.absent(),
                 Value<double?> balance = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1656,6 +1792,8 @@ class $$SmsTransactionsTableTableManager
                 transactionType: transactionType,
                 category: category,
                 transactionDate: transactionDate,
+                provider: provider,
+                transactionCost: transactionCost,
                 balance: balance,
                 referenceNumber: referenceNumber,
                 createdAt: createdAt,
@@ -1670,6 +1808,8 @@ class $$SmsTransactionsTableTableManager
                 required String transactionType,
                 required String category,
                 required DateTime transactionDate,
+                Value<String> provider = const Value.absent(),
+                Value<double?> transactionCost = const Value.absent(),
                 Value<double?> balance = const Value.absent(),
                 Value<String?> referenceNumber = const Value.absent(),
                 required DateTime createdAt,
@@ -1682,6 +1822,8 @@ class $$SmsTransactionsTableTableManager
                 transactionType: transactionType,
                 category: category,
                 transactionDate: transactionDate,
+                provider: provider,
+                transactionCost: transactionCost,
                 balance: balance,
                 referenceNumber: referenceNumber,
                 createdAt: createdAt,

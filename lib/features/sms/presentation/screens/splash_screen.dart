@@ -21,10 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToNextScreen() async {
     // Simulate initialization delay
     await Future.delayed(const Duration(seconds: 2));
-    
+
     final permissionService = getIt<PermissionService>();
     final hasPermission = await permissionService.isSmsPermissionGranted();
-    
+
     if (mounted) {
       if (hasPermission) {
         context.go('/home');
@@ -78,18 +78,18 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'SMS Transaction Analyzer',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               // Subtitle
               Text(
                 'Track your financial transactions',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 60),

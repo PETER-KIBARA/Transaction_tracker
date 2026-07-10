@@ -20,9 +20,9 @@ class SmsListenerService {
     required SmsParsingService parsingService,
     required SmsTransactionRepository repository,
     required SmsReadingService readingService,
-  })  : _parsingService = parsingService,
-        _repository = repository,
-        _readingService = readingService;
+  }) : _parsingService = parsingService,
+       _repository = repository,
+       _readingService = readingService;
 
   /// Start listening for incoming SMS messages
   Future<void> startListening() async {
@@ -78,8 +78,12 @@ class SmsListenerService {
 
       for (final sms in smsList) {
         // Parse the SMS message
-        final transaction = _parsingService.parseSms(sms.messageBody, sms.sender);
-        
+        final transaction = _parsingService.parseSms(
+          sms.messageBody,
+          sms.sender,
+          receivedAt: sms.timestamp,
+        );
+
         if (transaction != null) {
           transactions.add(transaction);
         }

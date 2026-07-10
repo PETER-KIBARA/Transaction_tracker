@@ -31,10 +31,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         : ref.watch(searchedTransactionsProvider(query: searchQuery));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transactions'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Transactions'), elevation: 0),
       body: Column(
         children: [
           // Search Bar
@@ -81,18 +78,17 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'No transactions found',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Colors.grey,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: Colors.grey),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             searchQuery.isEmpty
                                 ? 'Scan your SMS messages to get started'
                                 : 'Try a different search query',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey,
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -106,7 +102,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   itemCount: transactions.length,
                   itemBuilder: (context, index) {
                     final txn = transactions[index];
-                    final isExpense = txn.transactionType.toLowerCase().contains('withdrawal') ||
+                    final isExpense =
+                        txn.transactionType.toLowerCase().contains(
+                          'withdrawal',
+                        ) ||
                         txn.transactionType.toLowerCase().contains('payment') ||
                         txn.transactionType.toLowerCase().contains('purchase');
 
@@ -125,7 +124,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
-                              isExpense ? Icons.arrow_upward : Icons.arrow_downward,
+                              isExpense
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
                               color: isExpense ? Colors.red : Colors.green,
                             ),
                           ),
@@ -141,31 +142,29 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                 'From: ${txn.sender}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.grey[600]),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 AppUtils.formatDateTime(txn.transactionDate),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.grey),
                               ),
                               if (txn.referenceNumber != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   'Ref: ${txn.referenceNumber}',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Colors.grey,
-                                      ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: Colors.grey),
                                 ),
                               ],
                             ],
                           ),
                           trailing: Text(
                             '${isExpense ? '-' : '+'}${AppUtils.formatSimpleCurrency(txn.amount)}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: isExpense ? Colors.red : Colors.green,
                                 ),
@@ -180,7 +179,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 );
               },
               loading: () => const LoadingWidget(),
-              error: (error, stackTrace) => AppErrorWidget(error: error.toString()),
+              error: (error, stackTrace) =>
+                  AppErrorWidget(error: error.toString()),
             ),
           ),
           // Pagination controls
@@ -194,7 +194,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     onPressed: _currentPage > 1
                         ? () {
                             setState(() => _currentPage--);
-                            ref.refresh(paginatedTransactionsProvider(page: _currentPage));
+                            ref.refresh(
+                              paginatedTransactionsProvider(page: _currentPage),
+                            );
                           }
                         : null,
                     icon: const Icon(Icons.arrow_back),
@@ -204,7 +206,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       setState(() => _currentPage++);
-                      ref.refresh(paginatedTransactionsProvider(page: _currentPage));
+                      ref.refresh(
+                        paginatedTransactionsProvider(page: _currentPage),
+                      );
                     },
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Next'),
@@ -231,16 +235,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               _buildDetailRow('Amount:', AppUtils.formatCurrency(txn.amount)),
               _buildDetailRow('Type:', txn.transactionType),
               _buildDetailRow('From:', txn.sender),
-              _buildDetailRow('Date:', AppUtils.formatDateTime(txn.transactionDate)),
-              if (txn.referenceNumber != null) _buildDetailRow('Reference:', txn.referenceNumber),
-              if (txn.balance != null) _buildDetailRow('Balance:', AppUtils.formatCurrency(txn.balance)),
+              _buildDetailRow(
+                'Date:',
+                AppUtils.formatDateTime(txn.transactionDate),
+              ),
+              if (txn.referenceNumber != null)
+                _buildDetailRow('Reference:', txn.referenceNumber),
+              if (txn.balance != null)
+                _buildDetailRow(
+                  'Balance:',
+                  AppUtils.formatCurrency(txn.balance),
+                ),
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 12),
-              Text(
-                'Message:',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
+              Text('Message:', style: Theme.of(context).textTheme.labelMedium),
               const SizedBox(height: 8),
               Text(
                 txn.messageBody,
@@ -272,9 +281,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          Expanded(
-            child: Text(value ?? 'N/A'),
-          ),
+          Expanded(child: Text(value ?? 'N/A')),
         ],
       ),
     );

@@ -26,20 +26,24 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final startOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
-    final endOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1).subtract(const Duration(days: 1));
+    final endOfMonth = DateTime(
+      _selectedMonth.year,
+      _selectedMonth.month + 1,
+      1,
+    ).subtract(const Duration(days: 1));
 
     final statisticsAsync = ref.watch(
       monthlyStatisticsProvider(startDate: startOfMonth, endDate: endOfMonth),
     );
     final transactionsAsync = ref.watch(
-      transactionsByDateRangeProvider(startDate: startOfMonth, endDate: endOfMonth),
+      transactionsByDateRangeProvider(
+        startDate: startOfMonth,
+        endDate: endOfMonth,
+      ),
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analytics'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Analytics'), elevation: 0),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -66,9 +70,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       ),
                       Text(
                         AppUtils.getMonthName(_selectedMonth.month),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       IconButton(
                         icon: const Icon(Icons.arrow_forward),
@@ -102,9 +105,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               // Pie chart
               Text(
                 'Spending Distribution',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               transactionsAsync.when(
@@ -115,9 +118,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         padding: const EdgeInsets.all(24.0),
                         child: Text(
                           'No transaction data for this month',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                         ),
                       ),
                     );
@@ -126,7 +129,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   // Group by category
                   final categoryTotals = <String, double>{};
                   for (final txn in transactions) {
-                    categoryTotals[txn.category] = (categoryTotals[txn.category] ?? 0) + txn.amount;
+                    categoryTotals[txn.category] =
+                        (categoryTotals[txn.category] ?? 0) + txn.amount;
                   }
 
                   return SizedBox(
@@ -137,7 +141,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                             .map(
                               (e) => PieChartSectionData(
                                 value: e.value,
-                                title: '${e.key}\n${AppUtils.formatSimpleCurrency(e.value)}',
+                                title:
+                                    '${e.key}\n${AppUtils.formatSimpleCurrency(e.value)}',
                                 radius: 100,
                               ),
                             )
@@ -155,9 +160,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               // Bar chart for daily spending
               Text(
                 'Daily Breakdown',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               transactionsAsync.when(
@@ -168,9 +173,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       child: Center(
                         child: Text(
                           'No data available',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                         ),
                       ),
                     );
@@ -199,7 +204,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                                 barRods: [
                                   BarChartRodData(
                                     toY: e.value,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     width: 6,
                                   ),
                                 ],
@@ -220,7 +227,12 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _buildSummaryCards(BuildContext context, double income, double expenses, double savings) {
+  Widget _buildSummaryCards(
+    BuildContext context,
+    double income,
+    double expenses,
+    double savings,
+  ) {
     return Column(
       children: [
         Row(
@@ -278,9 +290,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
                 Icon(icon, color: color, size: 18),
               ],
@@ -289,9 +301,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             Text(
               AppUtils.formatCurrency(amount),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ],
         ),

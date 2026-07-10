@@ -17,17 +17,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     {'name': 'Groceries', 'icon': Icons.shopping_cart, 'color': Colors.purple},
     {'name': 'Fuel', 'icon': Icons.local_gas_station, 'color': Colors.amber},
     {'name': 'Shopping', 'icon': Icons.shopping_bag, 'color': Colors.pink},
-    {'name': 'Airtime & Credit', 'icon': Icons.phone_android, 'color': Colors.teal},
-    {'name': 'Mobile Money', 'icon': Icons.mobile_screen_share, 'color': Colors.indigo},
+    {
+      'name': 'Airtime & Credit',
+      'icon': Icons.phone_android,
+      'color': Colors.teal,
+    },
+    {
+      'name': 'Mobile Money',
+      'icon': Icons.mobile_screen_share,
+      'color': Colors.indigo,
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categories'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Categories'), elevation: 0),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: categories.length,
@@ -43,18 +48,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   color: (category['color'] as Color).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(category['icon'] as IconData,
-                    color: category['color'] as Color),
+                child: Icon(
+                  category['icon'] as IconData,
+                  color: category['color'] as Color,
+                ),
               ),
               title: Text(category['name'] as String),
               trailing: PopupMenuButton(
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    child: Text('Edit'),
-                  ),
-                  const PopupMenuItem(
-                    child: Text('Delete'),
-                  ),
+                  const PopupMenuItem(child: Text('Edit')),
+                  const PopupMenuItem(child: Text('Delete')),
                 ],
               ),
             ),
@@ -76,9 +79,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              decoration: InputDecoration(hintText: 'Category name'),
-            ),
+            TextField(decoration: InputDecoration(hintText: 'Category name')),
           ],
         ),
         actions: [

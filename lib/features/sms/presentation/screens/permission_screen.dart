@@ -44,7 +44,11 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
 
       final transactions = <SmsTransactionEntity>[];
       for (final sms in transactionSms) {
-        final transaction = _smsParsingService.parseSms(sms.messageBody, sms.sender);
+        final transaction = _smsParsingService.parseSms(
+          sms.messageBody,
+          sms.sender,
+          receivedAt: sms.timestamp,
+        );
         if (transaction != null) {
           transactions.add(transaction);
         }
@@ -64,9 +68,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isImporting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error importing SMS: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error importing SMS: $e')));
         context.go('/home');
       }
     }
@@ -101,9 +105,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
     try {
       await _permissionService.openAppSettings();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening app settings: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening app settings: $e')));
     }
   }
 
@@ -135,8 +139,8 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
               Text(
                 'SMS Access Required',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -144,19 +148,19 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
               Text(
                 'To analyze your transactions, we need access to your SMS messages. This allows us to:',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                      height: 1.5,
-                    ),
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               // Permission Benefits
               ...[
-                'Extract transaction amounts and details',
-                'Categorize your spending automatically',
-                'Generate spending analytics',
-                'Track your financial trends',
-              ]
+                    'Extract transaction amounts and details',
+                    'Categorize your spending automatically',
+                    'Generate spending analytics',
+                    'Track your financial trends',
+                  ]
                   .map(
                     (benefit) => Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
@@ -187,9 +191,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.red.withOpacity(0.3),
-                    ),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
@@ -198,9 +200,8 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
                       Expanded(
                         child: Text(
                           'Permission was denied. Please enable SMS access in app settings.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.red[700],
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.red[700]),
                         ),
                       ),
                     ],
@@ -218,7 +219,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text('Allow SMS Access'),
@@ -239,9 +242,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
               Text(
                 '💡 Your SMS data is stored locally on your device and never sent to external servers.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
-                      fontStyle: FontStyle.italic,
-                    ),
+                  color: Colors.grey[500],
+                  fontStyle: FontStyle.italic,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

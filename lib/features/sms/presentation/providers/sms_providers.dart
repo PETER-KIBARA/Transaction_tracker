@@ -5,6 +5,7 @@ import 'package:transaction_tracker/database/app_database.dart';
 import 'package:transaction_tracker/features/sms/data/datasources/local_sms_datasource.dart';
 import 'package:transaction_tracker/features/sms/data/repositories/sms_transaction_repository_impl.dart';
 import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/dashboard_summary.dart';
 import 'package:transaction_tracker/features/sms/domain/repositories/sms_transaction_repository.dart';
 import 'package:transaction_tracker/features/sms/domain/usecases/sms_transaction_usecases.dart';
 
@@ -48,6 +49,16 @@ GetTransactionsByCategoryUseCase getTransactionsByCategoryUseCase(Ref ref) {
   final repository = ref.watch(smsTransactionRepositoryProvider);
   return GetTransactionsByCategoryUseCase(repository);
 }
+
+@riverpod
+GetTransactionsByProviderUseCase getTransactionsByProviderUseCase(Ref ref) =>
+    GetTransactionsByProviderUseCase(
+      ref.watch(smsTransactionRepositoryProvider),
+    );
+
+@riverpod
+GetDashboardSummaryUseCase getDashboardSummaryUseCase(Ref ref) =>
+    GetDashboardSummaryUseCase(ref.watch(smsTransactionRepositoryProvider));
 
 @riverpod
 GetTransactionsByDateRangeUseCase getTransactionsByDateRangeUseCase(Ref ref) {
@@ -116,6 +127,16 @@ Future<List<SmsTransactionEntity>> transactionsByCategory(
   final useCase = ref.watch(getTransactionsByCategoryUseCaseProvider);
   return useCase(category);
 }
+
+@riverpod
+Future<List<SmsTransactionEntity>> transactionsByProvider(
+  Ref ref, {
+  required String providerName,
+}) => ref.watch(getTransactionsByProviderUseCaseProvider)(providerName);
+
+@riverpod
+Future<DashboardSummary> dashboardSummary(Ref ref) =>
+    ref.watch(getDashboardSummaryUseCaseProvider)();
 
 @riverpod
 Future<List<SmsTransactionEntity>> transactionsByDateRange(

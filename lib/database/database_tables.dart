@@ -9,6 +9,8 @@ class SmsTransactions extends Table {
   TextColumn get transactionType => text()();
   TextColumn get category => text()();
   DateTimeColumn get transactionDate => dateTime()();
+  TextColumn get provider => text().withDefault(const Constant('unknown'))();
+  RealColumn get transactionCost => real().nullable()();
   RealColumn get balance => real().nullable()();
   TextColumn get referenceNumber => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();

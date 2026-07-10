@@ -122,6 +122,46 @@ final getTransactionsByCategoryUseCaseProvider =
 // ignore: unused_element
 typedef GetTransactionsByCategoryUseCaseRef =
     AutoDisposeProviderRef<GetTransactionsByCategoryUseCase>;
+String _$getTransactionsByProviderUseCaseHash() =>
+    r'175c19da413bdc54d42b2b52dab649fceeaba4ee';
+
+/// See also [getTransactionsByProviderUseCase].
+@ProviderFor(getTransactionsByProviderUseCase)
+final getTransactionsByProviderUseCaseProvider =
+    AutoDisposeProvider<GetTransactionsByProviderUseCase>.internal(
+      getTransactionsByProviderUseCase,
+      name: r'getTransactionsByProviderUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getTransactionsByProviderUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetTransactionsByProviderUseCaseRef =
+    AutoDisposeProviderRef<GetTransactionsByProviderUseCase>;
+String _$getDashboardSummaryUseCaseHash() =>
+    r'f5da5dd12b5e67b1b70d2eaf041ea6af53545ddb';
+
+/// See also [getDashboardSummaryUseCase].
+@ProviderFor(getDashboardSummaryUseCase)
+final getDashboardSummaryUseCaseProvider =
+    AutoDisposeProvider<GetDashboardSummaryUseCase>.internal(
+      getDashboardSummaryUseCase,
+      name: r'getDashboardSummaryUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getDashboardSummaryUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetDashboardSummaryUseCaseRef =
+    AutoDisposeProviderRef<GetDashboardSummaryUseCase>;
 String _$getTransactionsByDateRangeUseCaseHash() =>
     r'f473c4e25a442e044a20d5cc1fdaa2896b7ae047';
 
@@ -560,6 +600,156 @@ class _TransactionsByCategoryProviderElement
   String get category => (origin as TransactionsByCategoryProvider).category;
 }
 
+String _$transactionsByProviderHash() =>
+    r'de114dbe2142675e9793b52e41b2a0fa401fd91b';
+
+/// See also [transactionsByProvider].
+@ProviderFor(transactionsByProvider)
+const transactionsByProviderProvider = TransactionsByProviderFamily();
+
+/// See also [transactionsByProvider].
+class TransactionsByProviderFamily
+    extends Family<AsyncValue<List<SmsTransactionEntity>>> {
+  /// See also [transactionsByProvider].
+  const TransactionsByProviderFamily();
+
+  /// See also [transactionsByProvider].
+  TransactionsByProviderProvider call({required String providerName}) {
+    return TransactionsByProviderProvider(providerName: providerName);
+  }
+
+  @override
+  TransactionsByProviderProvider getProviderOverride(
+    covariant TransactionsByProviderProvider provider,
+  ) {
+    return call(providerName: provider.providerName);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'transactionsByProviderProvider';
+}
+
+/// See also [transactionsByProvider].
+class TransactionsByProviderProvider
+    extends AutoDisposeFutureProvider<List<SmsTransactionEntity>> {
+  /// See also [transactionsByProvider].
+  TransactionsByProviderProvider({required String providerName})
+    : this._internal(
+        (ref) => transactionsByProvider(
+          ref as TransactionsByProviderRef,
+          providerName: providerName,
+        ),
+        from: transactionsByProviderProvider,
+        name: r'transactionsByProviderProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$transactionsByProviderHash,
+        dependencies: TransactionsByProviderFamily._dependencies,
+        allTransitiveDependencies:
+            TransactionsByProviderFamily._allTransitiveDependencies,
+        providerName: providerName,
+      );
+
+  TransactionsByProviderProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.providerName,
+  }) : super.internal();
+
+  final String providerName;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<SmsTransactionEntity>> Function(
+      TransactionsByProviderRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TransactionsByProviderProvider._internal(
+        (ref) => create(ref as TransactionsByProviderRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        providerName: providerName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<SmsTransactionEntity>> createElement() {
+    return _TransactionsByProviderProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionsByProviderProvider &&
+        other.providerName == providerName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, providerName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TransactionsByProviderRef
+    on AutoDisposeFutureProviderRef<List<SmsTransactionEntity>> {
+  /// The parameter `providerName` of this provider.
+  String get providerName;
+}
+
+class _TransactionsByProviderProviderElement
+    extends AutoDisposeFutureProviderElement<List<SmsTransactionEntity>>
+    with TransactionsByProviderRef {
+  _TransactionsByProviderProviderElement(super.provider);
+
+  @override
+  String get providerName =>
+      (origin as TransactionsByProviderProvider).providerName;
+}
+
+String _$dashboardSummaryHash() => r'b021f5da8628be89bc34e5b207229c29592436c1';
+
+/// See also [dashboardSummary].
+@ProviderFor(dashboardSummary)
+final dashboardSummaryProvider =
+    AutoDisposeFutureProvider<DashboardSummary>.internal(
+      dashboardSummary,
+      name: r'dashboardSummaryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$dashboardSummaryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef DashboardSummaryRef = AutoDisposeFutureProviderRef<DashboardSummary>;
 String _$transactionsByDateRangeHash() =>
     r'96c21967e7738724b18b5d892e9ddd02a912b405';
 

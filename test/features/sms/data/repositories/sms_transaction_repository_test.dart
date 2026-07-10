@@ -32,8 +32,9 @@ void main() {
       ];
 
       // Act
-      when(() => mockDataSource.getAllTransactions())
-          .thenAnswer((_) async => []);
+      when(
+        () => mockDataSource.getAllTransactions(),
+      ).thenAnswer((_) async => []);
 
       final result = await repository.getAllTransactions();
 
@@ -44,7 +45,9 @@ void main() {
 
     test('Get transaction count successfully', () async {
       // Arrange
-      when(() => mockDataSource.getTransactionCount()).thenAnswer((_) async => 10);
+      when(
+        () => mockDataSource.getTransactionCount(),
+      ).thenAnswer((_) async => 10);
 
       // Act
       final result = await repository.getTransactionCount();
@@ -56,8 +59,9 @@ void main() {
 
     test('Search transactions successfully', () async {
       // Arrange
-      when(() => mockDataSource.searchTransactions(any()))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockDataSource.searchTransactions(any()),
+      ).thenAnswer((_) async => []);
 
       // Act
       final result = await repository.searchTransactions('test');
@@ -80,8 +84,9 @@ void main() {
         createdAt: DateTime.fromMillisecondsSinceEpoch(0),
       );
 
-      when(() => mockDataSource.insertTransaction(any()))
-          .thenAnswer((_) async => {});
+      when(
+        () => mockDataSource.insertTransaction(any()),
+      ).thenAnswer((_) async => {});
 
       // Act
       await repository.addTransaction(transaction);
@@ -92,8 +97,9 @@ void main() {
 
     test('Delete transaction successfully', () async {
       // Arrange
-      when(() => mockDataSource.deleteTransaction(any()))
-          .thenAnswer((_) async => {});
+      when(
+        () => mockDataSource.deleteTransaction(any()),
+      ).thenAnswer((_) async => {});
 
       // Act
       await repository.deleteTransaction('1');

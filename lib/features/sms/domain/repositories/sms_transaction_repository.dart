@@ -1,4 +1,5 @@
 import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/dashboard_summary.dart';
 
 /// Repository interface for SMS transactions
 abstract class SmsTransactionRepository {
@@ -6,7 +7,10 @@ abstract class SmsTransactionRepository {
   Future<List<SmsTransactionEntity>> getAllTransactions();
 
   /// Get SMS transactions paginated
-  Future<List<SmsTransactionEntity>> getTransactionsPaginated(int page, int pageSize);
+  Future<List<SmsTransactionEntity>> getTransactionsPaginated(
+    int page,
+    int pageSize,
+  );
 
   /// Get transactions by category
   Future<List<SmsTransactionEntity>> getTransactionsByCategory(String category);
@@ -22,6 +26,11 @@ abstract class SmsTransactionRepository {
 
   /// Get transactions by type
   Future<List<SmsTransactionEntity>> getTransactionsByType(String type);
+
+  Future<List<SmsTransactionEntity>> getTransactionsByProvider(String provider);
+
+  /// Returns dashboard totals and per-provider values from database aggregates.
+  Future<DashboardSummary> getDashboardSummary();
 
   /// Get transaction count
   Future<int> getTransactionCount();
@@ -42,5 +51,8 @@ abstract class SmsTransactionRepository {
   Future<void> updateTransaction(SmsTransactionEntity transaction);
 
   /// Get statistics
-  Future<Map<String, dynamic>> getStatistics(DateTime startDate, DateTime endDate);
+  Future<Map<String, dynamic>> getStatistics(
+    DateTime startDate,
+    DateTime endDate,
+  );
 }

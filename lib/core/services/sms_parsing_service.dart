@@ -1,11 +1,14 @@
 import 'package:transaction_tracker/core/constants/app_constants.dart';
 import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
-import 'package:intl/intl.dart';
 
 /// Service for parsing SMS messages to extract transaction information
 class SmsParsingService {
   /// Parse SMS message and extract transaction details
-  SmsTransactionEntity? parseSms(String messageBody, String sender) {
+  SmsTransactionEntity? parseSms(
+    String messageBody,
+    String sender, {
+    DateTime? receivedAt,
+  }) {
     try {
       if (messageBody.isEmpty) return null;
 
@@ -23,14 +26,21 @@ class SmsParsingService {
       final amount = _extractAmount(messageBody);
       if (amount == null || amount <= 0) return null;
 
-      // Extract date (or use current date)
-      final dateTime = _extractDate(messageBody) ?? DateTime.now();
+      // The inbox timestamp is the authoritative receipt time. Text dates can
+      // refer to a repayment due date or other non-transaction event.
+      final dateTime =
+          receivedAt ?? _extractDate(messageBody) ?? DateTime.now();
 
       // Extract reference number
       final reference = _extractReference(messageBody);
 
       // Extract balance if present
       final balance = _extractBalance(messageBody);
+      final provider = detectTransactionProvider(
+        sender: sender,
+        messageBody: messageBody,
+      );
+      final transactionCost = _extractTransactionCost(messageBody);
 
       // Determine category based on keywords
       final category = _determineCategory(messageBody, transactionType);
@@ -43,6 +53,8 @@ class SmsParsingService {
         transactionType: transactionType,
         category: category,
         transactionDate: dateTime,
+        provider: provider,
+        transactionCost: transactionCost,
         balance: balance,
         referenceNumber: reference,
         createdAt: DateTime.now(),
@@ -50,6 +62,14 @@ class SmsParsingService {
     } catch (e) {
       return null; // skip bad messages silently
     }
+  }
+
+  double? _extractTransactionCost(String message) {
+    final match = RegExp(
+      r'(?:transaction cost|pay bill charge|transaction fee|charge)\s*[,.:]?\s*(?:Ksh|KES)\.?\s*([\d,]+(?:\.\d{1,2})?)',
+      caseSensitive: false,
+    ).firstMatch(message);
+    return double.tryParse((match?.group(1) ?? '').replaceAll(',', ''));
   }
 
   /// Determine if message is a transaction-related SMS
@@ -144,12 +164,10 @@ class SmsParsingService {
   /// Extract date from message
   DateTime? _extractDate(String message) {
     try {
-      final dateRegex = RegExp(AppConstants.datePattern);
-      final match = dateRegex.firstMatch(message);
-
-      if (match != null) {
-        final dateStr = match.group(0) ?? '';
-        return _parseDate(dateStr);
+      final dateRegex = RegExp(AppConstants.dateTimePattern);
+      for (final match in dateRegex.allMatches(message)) {
+        if (_isNonTransactionDate(message, match)) continue;
+        return _parseDateTime(match);
       }
     } catch (e) {
       // Return null if date parsing fails
@@ -157,38 +175,49 @@ class SmsParsingService {
     return null;
   }
 
-  /// Parse date string in various formats
-  DateTime? _parseDate(String dateStr) {
-    final formats = [
-      'dd/MM/yyyy',
-      'dd-MM-yyyy',
-      'yyyy/MM/dd',
-      'yyyy-MM-dd',
-      'MM/dd/yyyy',
-      'MM-dd-yyyy',
-      'dd/MM/yy',
-      'dd-MM-yy',
-      'd/M/yy',
-      'd/M/yyyy',
-    ];
+  /// Ignores dates that describe a loan due date, validity period, or balance
+  /// status rather than the transaction confirmation itself.
+  bool _isNonTransactionDate(String message, RegExpMatch match) {
+    final precedingText = message
+        .substring(0, match.start)
+        .toLowerCase()
+        .replaceFirst(RegExp(r'\s+$'), '');
+    return RegExp(
+      r'(?:due|outstanding|expiry|valid\s+until)$',
+    ).hasMatch(precedingText);
+  }
 
-    for (final format in formats) {
-      try {
-        final parsed = DateFormat(format).parse(dateStr);
-        // Fix 2-digit year parsing (0026 → 2026)
-        if (parsed.year < 100) {
-          return DateTime(
-            parsed.year + 2000,
-            parsed.month,
-            parsed.day,
-          );
-        }
-        return parsed;
-      } catch (e) {
-        continue;
-      }
+  /// Parses the day-first date and optional time captured from a Kenyan SMS.
+  DateTime? _parseDateTime(RegExpMatch match) {
+    final day = int.tryParse(match.group(1) ?? '');
+    final month = int.tryParse(match.group(3) ?? '');
+    final rawYear = int.tryParse(match.group(4) ?? '');
+    if (day == null || month == null || rawYear == null) return null;
+
+    // Kenyan provider messages use 20xx dates in the app's realistic range.
+    // Keep this normalization in one shared path for every provider.
+    final year = rawYear < 100 ? 2000 + rawYear : rawYear;
+
+    var hour = int.tryParse(match.group(5) ?? '') ?? 0;
+    final minute = int.tryParse(match.group(6) ?? '') ?? 0;
+    final meridiem = match.group(7)?.toUpperCase();
+
+    if (minute > 59 || hour < 0) return null;
+    if (meridiem != null) {
+      if (hour < 1 || hour > 12) return null;
+      if (meridiem == 'PM' && hour != 12) hour += 12;
+      if (meridiem == 'AM' && hour == 12) hour = 0;
+    } else if (hour > 23) {
+      return null;
     }
-    return null;
+
+    final result = DateTime(year, month, day, hour, minute);
+    // DateTime normalizes invalid components (for example, 31 February), so
+    // verify that the captured values represent a real calendar date.
+    if (result.year != year || result.month != month || result.day != day) {
+      return null;
+    }
+    return result;
   }
 
   /// Extract reference number from start of M-Pesa message

@@ -1,4 +1,5 @@
 import 'package:transaction_tracker/features/sms/domain/entities/sms_transaction_entity.dart';
+import 'package:transaction_tracker/features/sms/domain/entities/dashboard_summary.dart';
 import 'package:transaction_tracker/features/sms/domain/repositories/sms_transaction_repository.dart';
 
 /// Use case for fetching all transactions
@@ -34,13 +35,31 @@ class GetTransactionsByCategoryUseCase {
   }
 }
 
+class GetTransactionsByProviderUseCase {
+  GetTransactionsByProviderUseCase(this._repository);
+  final SmsTransactionRepository _repository;
+
+  Future<List<SmsTransactionEntity>> call(String provider) =>
+      _repository.getTransactionsByProvider(provider);
+}
+
+class GetDashboardSummaryUseCase {
+  GetDashboardSummaryUseCase(this._repository);
+  final SmsTransactionRepository _repository;
+
+  Future<DashboardSummary> call() => _repository.getDashboardSummary();
+}
+
 /// Use case for fetching transactions by date range
 class GetTransactionsByDateRangeUseCase {
   final SmsTransactionRepository _repository;
 
   GetTransactionsByDateRangeUseCase(this._repository);
 
-  Future<List<SmsTransactionEntity>> call(DateTime startDate, DateTime endDate) {
+  Future<List<SmsTransactionEntity>> call(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
     return _repository.getTransactionsByDateRange(startDate, endDate);
   }
 }

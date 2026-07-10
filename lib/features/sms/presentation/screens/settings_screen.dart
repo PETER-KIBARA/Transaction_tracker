@@ -23,26 +23,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Settings'), elevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Data Management Section
           Text(
             'Data Management',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Card(
             child: ListTile(
               leading: const Icon(Icons.refresh),
               title: const Text('Re-scan SMS'),
-              subtitle: const Text('Import latest SMS messages from your device'),
+              subtitle: const Text(
+                'Import latest SMS messages from your device',
+              ),
               trailing: const Icon(Icons.arrow_forward),
               onTap: _showConfirmDialog,
             ),
@@ -61,9 +60,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Appearance Section
           Text(
             'Appearance',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Card(
@@ -72,7 +71,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: const Text('Dark Mode'),
               value: ref.watch(themeModeProvider) == ThemeMode.dark,
               onChanged: (value) {
-                ref.read(themeModeProvider.notifier).state = value ? ThemeMode.dark : ThemeMode.light;
+                ref.read(themeModeProvider.notifier).state = value
+                    ? ThemeMode.dark
+                    : ThemeMode.light;
               },
             ),
           ),
@@ -80,9 +81,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Security Section
           Text(
             'Security & Privacy',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Card(
@@ -98,9 +99,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Info Section
           Text(
             'Information',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Card(
@@ -137,10 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: _importSms,
-            child: const Text('Scan'),
-          ),
+          TextButton(onPressed: _importSms, child: const Text('Scan')),
         ],
       ),
     );
@@ -148,19 +146,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _importSms() async {
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Scanning SMS messages...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Scanning SMS messages...')));
     try {
       final smsReadingService = getIt<SmsReadingService>();
       final smsParsingService = getIt<SmsParsingService>();
-      
+
       final allSms = await smsReadingService.getAllSms();
       final transactionSms = smsReadingService.filterTransactionSms(allSms);
 
       final transactions = <SmsTransactionEntity>[];
       for (final sms in transactionSms) {
-        final transaction = smsParsingService.parseSms(sms.messageBody, sms.sender);
+        final transaction = smsParsingService.parseSms(
+          sms.messageBody,
+          sms.sender,
+          receivedAt: sms.timestamp,
+        );
         if (transaction != null) {
           transactions.add(transaction);
         }
@@ -168,15 +170,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       if (transactions.isNotEmpty) {
         await ref.read(addMultipleTransactionsUseCaseProvider)(transactions);
-        
+
         // Refresh UI providers
         ref.invalidate(paginatedTransactionsProvider);
         ref.invalidate(monthlyStatisticsProvider);
         ref.invalidate(allTransactionsProvider);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Successfully imported ${transactions.length} transactions.')),
+            SnackBar(
+              content: Text(
+                'Successfully imported ${transactions.length} transactions.',
+              ),
+            ),
           );
         }
       } else {
@@ -188,16 +194,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error scanning SMS: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error scanning SMS: $e')));
       }
     }
   }
 
   Future<void> _exportData() async {
     try {
-      final transactions = await ref.read(getAllTransactionsUseCaseProvider).call();
+      final transactions = await ref
+          .read(getAllTransactionsUseCaseProvider)
+          .call();
       if (transactions.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -206,27 +214,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
         return;
       }
-      
+
       String csv = 'ID,Date,Sender,Type,Category,Amount,Reference,Balance\n';
       for (final t in transactions) {
-        csv += '${t.id},${t.transactionDate},${t.sender},${t.transactionType},${t.category},${t.amount},${t.referenceNumber ?? ''},${t.balance ?? ''}\n';
+        csv +=
+            '${t.id},${t.transactionDate},${t.sender},${t.transactionType},${t.category},${t.amount},${t.referenceNumber ?? ''},${t.balance ?? ''}\n';
       }
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final path = '${directory.path}/transactions_export.csv';
       final file = File(path);
       await file.writeAsString(csv);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data exported to $path')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Data exported to $path')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error exporting data: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error exporting data: $e')));
       }
     }
   }
@@ -248,13 +257,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await ref.read(smsTransactionRepositoryProvider).deleteAllTransactions();
-                
+                await ref
+                    .read(smsTransactionRepositoryProvider)
+                    .deleteAllTransactions();
+
                 // Refresh UI providers
                 ref.invalidate(paginatedTransactionsProvider);
                 ref.invalidate(monthlyStatisticsProvider);
                 ref.invalidate(allTransactionsProvider);
-                
+
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('All data has been cleared')),
@@ -290,21 +301,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
-              Text(
-                '• All data is stored locally on your device',
-              ),
+              Text('• All data is stored locally on your device'),
               SizedBox(height: 8),
-              Text(
-                '• No data is sent to external servers',
-              ),
+              Text('• No data is sent to external servers'),
               SizedBox(height: 8),
-              Text(
-                '• No analytics or tracking',
-              ),
+              Text('• No analytics or tracking'),
               SizedBox(height: 8),
-              Text(
-                '• Your SMS content is never shared',
-              ),
+              Text('• Your SMS content is never shared'),
               SizedBox(height: 16),
               Text(
                 'This app respects your privacy and operates completely offline.',
