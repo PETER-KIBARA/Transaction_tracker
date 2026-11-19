@@ -82,4 +82,4 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "lib/features/sms/presentation/asset/icon.png"  
+  image_path: "lib/features/sms/presentation/asset/icon.svg"  
